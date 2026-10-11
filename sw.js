@@ -1,5 +1,5 @@
 /* Офлайн-кэш оболочки приложения. При каждом обновлении увеличивать VERSION. */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = 'ht-' + VERSION;
 const SHELL = ['./', 'index.html', 'app.js', 'foods.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',

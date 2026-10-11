@@ -111,7 +111,7 @@ function viewLogin(){
   <form id="f-auth"><label class="input"><input id="login-email" type="email" inputmode="email" autocomplete="email" placeholder="Почта" required value="${esc(L.email)}"></label>
   <label class="input"><input id="login-pass" type="password" autocomplete="${su?'new-password':'current-password'}" placeholder="${su?'Пароль, от 8 символов':'Пароль'}" minlength="${su?8:1}" required></label>
   <button class="btn primary wide" ${L.busy?'disabled':''}>${L.busy?'Секунду…':su?'Создать аккаунт':'Войти'}</button></form>
-  <button class="link" data-act="login-mode">${su?'Уже есть аккаунт — войти':'Первый раз? Создать аккаунт'}</button>`;
+  ${su?'<button class="link" data-act="login-mode">Уже есть аккаунт — войти</button>':''}`;
   if(L.err)h+=`<p class="err">${esc(L.err)}</p>`;
   return h+`</div>`;
 }
