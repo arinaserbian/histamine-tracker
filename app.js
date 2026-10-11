@@ -38,8 +38,11 @@ const TICK='<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linec
 
 /* ---------- продукты ---------- */
 const slug=s=>s.toLowerCase().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'');
-const FOODS=(window.FOODS_RAW||[]).map(([name,cat,score,fl,note])=>({id:'f-'+slug(name),name,cat,score,lib:fl.includes('L'),blk:fl.includes('B'),note:note||''}));
-const CATS=[...new Set(FOODS.map(f=>f.cat))];
+/* База продуктов хранится в плане (в закрытой базе), не в публичном коде. */
+let FOODS=[],CATS=[],FOODS_SRC=null;
+function buildFoods(){const raw=(S.plan&&S.plan.foods)||[];if(raw===FOODS_SRC)return;FOODS_SRC=raw;
+  FOODS=raw.map(([name,cat,score,fl,note])=>({id:'f-'+slug(name),name,cat,score,lib:(fl||'').includes('L'),blk:(fl||'').includes('B'),note:note||''}));
+  CATS=[...new Set(FOODS.map(f=>f.cat))]}
 const DAIRY_WORDS=['молок','сыр','творог','йогурт','кефир','сметан','сливк','ряженк','молочн'];
 
 /* ---------- состояние ---------- */
@@ -238,7 +241,7 @@ function render(keepFocus){
   const ae=document.activeElement;const fid=ae&&ae.id;let pos=null;try{pos=ae&&ae.selectionStart}catch(e){}
   if(!S.user){app.innerHTML=viewLogin();tabs.parentNode.hidden=true;return}
   if(!S.plan){app.innerHTML=viewNoPlan();tabs.parentNode.hidden=true;return}
-  tabs.parentNode.hidden=false;
+  buildFoods();tabs.parentNode.hidden=false;
   app.innerHTML=S.route==='diary'?viewDiary():S.route==='products'?viewProducts():S.route==='info'?viewInfo():viewToday();
   tabs.innerHTML=TABS.map(([k,l,ic])=>`<button class="tab${k===S.route?' on':''}" data-act="go" data-k="${k}" aria-current="${k===S.route?'page':'false'}"><svg viewBox="0 0 24 24">${ic}</svg>${l}</button>`).join('');
   if(keepFocus&&fid){const el=document.getElementById(fid);if(el&&el.tagName==='INPUT'){el.focus();try{if(pos!=null)el.setSelectionRange(pos,pos)}catch(e){}}}
