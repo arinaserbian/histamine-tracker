@@ -1,7 +1,7 @@
 /* Офлайн-кэш оболочки приложения. При каждом обновлении увеличивать VERSION. */
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = 'ht-' + VERSION;
-const SHELL = ['./', 'index.html', 'app.js', 'config.js', 'manifest.webmanifest',
+const SHELL = ['./', 'index.html', 'app.js?v=6', 'config.js?v=6', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js'];
 
@@ -16,11 +16,11 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || url.hostname.endsWith('supabase.co')) return;
   // Сначала сеть (чтобы обновления приходили сразу), без сети — кэш.
   e.respondWith(
-    fetch(e.request).then(res => {
+    fetch(e.request, url.origin === location.origin ? { cache: 'no-cache' } : undefined).then(res => {
       if (res.ok && (url.origin === location.origin || url.hostname.includes('jsdelivr') || url.hostname.includes('gstatic') || url.hostname.includes('googleapis'))) {
         const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy));
       }
       return res;
-    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match('index.html')))
+    }).catch(() => caches.match(e.request).then(r => r || caches.match('index.html')))
   );
 });
