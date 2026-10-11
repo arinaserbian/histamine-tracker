@@ -227,7 +227,7 @@ function viewInfo(){
   const st=t<p.start?'Курс ещё не начался':t>p.end?'Курс завершён':`День ${k} из ${p.courseDays}`;
   let h=`<div class="head"><h1>Лечение</h1></div><div class="cards">
   <div class="card accent"><span class="k">Курс</span><span class="big">${fmtDate(p.start)} — ${fmtDate(p.end)}</span><p>${st}${p.courseNote?' · '+esc(p.courseNote):''}</p></div>`;
-  if(p.diagnosis&&p.diagnosis.length)h+=`<div class="card"><h2>Что выяснили</h2>`+p.diagnosis.map(x=>`<div class="term"><b>${esc(x.h)}</b><p>${esc(x.d)}</p></div>`).join('')+`</div>`;
+  if(p.diagnosis&&p.diagnosis.length)h+=`<div class="card"><h2>Диагностировано</h2>`+p.diagnosis.map(x=>`<div class="term"><b>${esc(x.h)}</b><p>${esc(x.d)}</p></div>`).join('')+`</div>`;
   if(p.diet&&p.diet.length)h+=`<div class="card"><h2>Питание</h2><ul>`+p.diet.map(x=>`<li>${esc(x)}</li>`).join('')+`</ul></div>`;
   h+=`</div><div class="sec"><span>Препараты</span><span>${(p.meds||[]).length}</span></div>`;
   h+=(p.meds||[]).map(m=>{let w=m.when;const it=p.items.find(i=>i.every&&i.pill===m.pill);if(it)w+=' · '+polyDates(it).map(fmtShort).join(', ');return`<div class="med">${pill(m.pill)}<div class="txt"><span class="t">${esc(m.name)}</span><span class="s">${esc(m.why)}</span><span class="w">${esc(w)}</span></div></div>`}).join('');
