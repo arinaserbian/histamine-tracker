@@ -51,6 +51,11 @@ h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
 .bar i{display:block;height:100%;background:var(--brand);border-radius:3px;transition:width .25s}
 .sec{display:flex;justify-content:space-between;align-items:center;padding:20px 20px 6px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .sec span:last-child{color:var(--faint);font-weight:500;font-variant-numeric:tabular-nums}
+.sec.cat{width:100%;padding:16px 20px;border-bottom:1px solid var(--line);text-align:left}
+.sec.cat:disabled{cursor:default;opacity:1;border-bottom:0;padding:20px 20px 6px}
+.sec .cl{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.chev{stroke:var(--muted);transition:transform .15s}
+.sec.cat.open .chev{transform:rotate(90deg)}
 .row-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);width:100%;text-align:left}
 .row-item.static{cursor:default}.row-item.last{border-bottom:0}
 .row-item .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
@@ -147,7 +152,7 @@ h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
 <div class="tabs" hidden><nav id="tabs"></nav></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="config.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

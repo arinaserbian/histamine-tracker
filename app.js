@@ -46,7 +46,8 @@ function buildFoods(){const raw=(S.plan&&S.plan.foods)||[];if(raw===FOODS_SRC)re
 const DAIRY_WORDS=['молок','сыр','творог','йогурт','кефир','сметан','сливк','ряженк','молочн'];
 
 /* ---------- состояние ---------- */
-const S={sb:null,user:null,plan:null,days:{},settings:{islaStart:null,custom:[]},route:'today',diaryDate:todayStr(),q:'',pq:'',pf:'all',login:{step:'email',email:'',busy:false,err:''},dirty:{days:{},settings:false},offline:false};
+const S={sb:null,user:null,plan:null,days:{},settings:{islaStart:null,custom:[]},route:'today',diaryDate:todayStr(),q:'',pq:'',pf:'all',login:{step:'email',email:'',busy:false,err:''},dirty:{days:{},settings:false},offline:false,openCats:{}};
+try{S.openCats=JSON.parse(localStorage.getItem('ht-open-cats')||'{}')||{}}catch(e){}
 const CACHE_KEY='ht-cache-v1';
 const loadCache=()=>{try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'null')}catch(e){return null}};
 const saveCache=()=>{try{localStorage.setItem(CACHE_KEY,JSON.stringify({uid:S.user&&S.user.id,plan:S.plan,days:S.days,settings:S.settings,dirty:S.dirty}))}catch(e){}};
@@ -102,6 +103,7 @@ const score=n=>`<span class="score s${n}">${n}</span>`;
 const LIB='<span class="badge lib">Л</span>';
 const PLUS='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const SEARCH_IC='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/></svg>';
+const CHEV='<svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3l3 3-3 3"/></svg>';
 const foodSub=f=>[f.blk?'блокирует DAO':'',f.note||''].filter(Boolean).join(' · ');
 const banBadge=()=>`<span class="badge ban">до ${fmtDate(P().dairyUntil)}</span>`;
 
@@ -212,7 +214,9 @@ function productList(){
       continue;
     }
     const items=fs.filter(f=>(f.cat||'Мои продукты')===c);if(!items.length)continue;
-    h+=`<div class="sec"><span>${esc(c)}</span><span></span></div>`;
+    const auto=!!q||S.pf!=='all';const open=auto||!!S.openCats[c];
+    h+=`<button class="sec cat${open?' open':''}" data-act="cat" data-c="${esc(c)}" aria-expanded="${open}" ${auto?'disabled':''}><span class="cl">${auto?'':CHEV}${esc(c)}</span><span>${items.length}</span></button>`;
+    if(!open)continue;
     for(const f of items){const sub=foodSub(f);h+=`<div class="row-item"><span class="txt"><span class="t">${esc(f.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:''}</span>${f.lib?LIB:''}${score(f.score)}<button class="plus" data-act="padd" data-id="${esc(f.id)}" aria-label="Добавить в дневник: ${esc(f.name)}">${PLUS}</button></div>`}
   }
   if(!h.includes('row-item'))h+=`<div class="empty-line">Ничего не нашлось. Если продукта нет в списке, скорее всего, он хорошо переносится.</div>`;
@@ -261,6 +265,7 @@ document.addEventListener('click',e=>{
   if(a==='custom'){const name=S.q.trim();if(!name)return;const f={id:'c-'+Date.now().toString(36),name:name[0].toUpperCase()+name.slice(1),cat:'Мои продукты',score:+b.dataset.s,lib:false,blk:false,note:''};
     S.settings.custom=(S.settings.custom||[]).concat(f);saveSettings();day(S.diaryDate).foods.push({f:f.id,t:Date.now()});saveDay(S.diaryDate);S.q='';toast('Добавлено: '+f.name);return render()}
   if(a==='pf'){S.pf=b.dataset.k;return render()}
+  if(a==='cat'){const c=b.dataset.c;if(S.openCats[c])delete S.openCats[c];else S.openCats[c]=true;try{localStorage.setItem('ht-open-cats',JSON.stringify(S.openCats))}catch(e){}document.getElementById('plist').innerHTML=productList();return}
   if(a==='padd'){const t=todayStr();day(t).foods.push({f:b.dataset.id,t:Date.now()});saveDay(t);const f=foodById(b.dataset.id);toast('В дневник: '+(f?f.name:''));return}
   if(a==='login-mode'){const em=document.getElementById('login-email');S.login={step:S.login.step==='signup'?'email':'signup',email:em?em.value:S.login.email,busy:false,err:''};return render()}
   if(a==='logout'){logout();return}
