@@ -105,17 +105,13 @@ const banBadge=()=>`<span class="badge ban">до ${fmtDate(P().dairyUntil)}</spa
 function viewLogin(){
   const L=S.login;
   if(!CFG.supabaseUrl||!CFG.supabaseKey)return `<div class="login"><h1>Гистамин-трекер</h1><p>Приложение ещё не подключено к базе. Нужно заполнить config.js.</p></div>`;
-  let h=`<div class="login"><img src="icons/icon-192.png" alt="" width="72" height="72"><h1>Гистамин-трекер</h1>`;
-  if(L.step==='email'){
-    h+=`<p>Введи почту — пришлём код для входа. Вход нужен один раз на каждом устройстве.</p>
-    <form id="f-email"><label class="input"><input id="login-email" type="email" inputmode="email" autocomplete="email" placeholder="Почта" required value="${esc(L.email)}"></label>
-    <button class="btn primary wide" ${L.busy?'disabled':''}>${L.busy?'Отправляем…':'Получить код'}</button></form>`;
-  } else {
-    h+=`<p>Код отправлен на <b>${esc(L.email)}</b>. Введи его здесь.</p>
-    <form id="f-code"><label class="input"><input id="login-code" inputmode="numeric" autocomplete="one-time-code" placeholder="Код из письма" maxlength="8" required></label>
-    <button class="btn primary wide" ${L.busy?'disabled':''}>${L.busy?'Проверяем…':'Войти'}</button></form>
-    <button class="link" data-act="login-back">Другая почта</button>`;
-  }
+  const su=L.step==='signup';
+  let h=`<div class="login"><img src="icons/icon-192.png" alt="" width="72" height="72"><h1>Гистамин-трекер</h1>
+  <p>${su?'Придумай пароль — дальше входишь по почте и паролю на любом устройстве.':'Вход нужен один раз на каждом устройстве.'}</p>
+  <form id="f-auth"><label class="input"><input id="login-email" type="email" inputmode="email" autocomplete="email" placeholder="Почта" required value="${esc(L.email)}"></label>
+  <label class="input"><input id="login-pass" type="password" autocomplete="${su?'new-password':'current-password'}" placeholder="${su?'Пароль, от 8 символов':'Пароль'}" minlength="${su?8:1}" required></label>
+  <button class="btn primary wide" ${L.busy?'disabled':''}>${L.busy?'Секунду…':su?'Создать аккаунт':'Войти'}</button></form>
+  <button class="link" data-act="login-mode">${su?'Уже есть аккаунт — войти':'Первый раз? Создать аккаунт'}</button>`;
   if(L.err)h+=`<p class="err">${esc(L.err)}</p>`;
   return h+`</div>`;
 }
@@ -263,7 +259,7 @@ document.addEventListener('click',e=>{
     S.settings.custom=(S.settings.custom||[]).concat(f);saveSettings();day(S.diaryDate).foods.push({f:f.id,t:Date.now()});saveDay(S.diaryDate);S.q='';toast('Добавлено: '+f.name);return render()}
   if(a==='pf'){S.pf=b.dataset.k;return render()}
   if(a==='padd'){const t=todayStr();day(t).foods.push({f:b.dataset.id,t:Date.now()});saveDay(t);const f=foodById(b.dataset.id);toast('В дневник: '+(f?f.name:''));return}
-  if(a==='login-back'){S.login={step:'email',email:S.login.email,busy:false,err:''};return render()}
+  if(a==='login-mode'){const em=document.getElementById('login-email');S.login={step:S.login.step==='signup'?'email':'signup',email:em?em.value:S.login.email,busy:false,err:''};return render()}
   if(a==='logout'){logout();return}
 });
 document.addEventListener('input',e=>{
@@ -272,15 +268,17 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('submit',async e=>{
   e.preventDefault();const L=S.login;
-  if(e.target.id==='f-email'){
-    L.email=document.getElementById('login-email').value.trim();L.busy=true;L.err='';render();
-    const {error}=await S.sb.auth.signInWithOtp({email:L.email,options:{emailRedirectTo:location.origin+location.pathname}});
-    L.busy=false;if(error){L.err=error.status===429?'Слишком много попыток. Подожди минуту и попробуй снова.':'Не получилось отправить код: '+error.message}else L.step='code';render();
-  }
-  if(e.target.id==='f-code'){
-    const token=document.getElementById('login-code').value.trim();L.busy=true;L.err='';render();
-    const {error}=await S.sb.auth.verifyOtp({email:L.email,token,type:'email'});
-    L.busy=false;if(error){L.err='Код не подошёл или устарел. Проверь письмо или запроси новый.';render()}
+  if(e.target.id==='f-auth'){
+    L.email=document.getElementById('login-email').value.trim();const password=document.getElementById('login-pass').value;
+    L.busy=true;L.err='';render();
+    let res;
+    if(L.step==='signup')res=await S.sb.auth.signUp({email:L.email,password});
+    else res=await S.sb.auth.signInWithPassword({email:L.email,password});
+    L.busy=false;const err=res.error;
+    if(err){const m=(err.message||'').toLowerCase();
+      L.err=m.includes('invalid login')?'Почта или пароль не подходят.':m.includes('already registered')?'Такой аккаунт уже есть — войди.':m.includes('signups not allowed')||m.includes('signup is disabled')?'Регистрация закрыта. Войди в существующий аккаунт.':m.includes('password')?'Пароль слишком простой: нужно от 8 символов.':'Не получилось: '+err.message;
+      render();return}
+    if(L.step==='signup'&&!res.data.session){L.err='Аккаунт создан, но вход не выполнен. Попробуй войти.';L.step='email';render()}
   }
 });
 

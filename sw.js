@@ -1,9 +1,9 @@
 /* Офлайн-кэш оболочки приложения. При каждом обновлении увеличивать VERSION. */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = 'ht-' + VERSION;
 const SHELL = ['./', 'index.html', 'app.js', 'foods.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js'];
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
