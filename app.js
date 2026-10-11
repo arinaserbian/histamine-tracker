@@ -204,7 +204,7 @@ function productList(){
   const ban=dairyBanned(todayStr());const q=S.pq.trim().toLowerCase();
   const fs=allFoods().filter(f=>(!q||f.name.toLowerCase().includes(q))&&(S.pf==='all'||(S.pf==='lib'?f.lib:String(f.score)===S.pf)));
   let h='';
-  if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div class="hint">Продуктов с оценкой 0 в списке нет: не нашла — значит, можно</div></div>`;
+  if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div class="hint">По списку SIGHI</div></div>`;
   const cats=[...CATS];if((S.settings.custom||[]).length)cats.push('Мои продукты');
   for(const c of cats){
     if(c==='Молочное'&&ban){
