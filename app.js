@@ -162,7 +162,7 @@ function asNeeded(d,ro){
   }
   return h;
 }
-function sums(d){const fs=day(d).foods.map(x=>foodById(x.f)).filter(Boolean);return{fs,pts:fs.reduce((a,f)=>a+f.score,0),lib:fs.filter(f=>f.lib).length}}
+function sums(d){const fs=day(d).foods.map(x=>foodById(x.f)).filter(Boolean);return{fs,pts:fs.reduce((a,f)=>a+f.score,0),lib:fs.filter(f=>f.lib).length,good:fs.filter(f=>f.score===0).length}}
 function frequent(){const c={};const t=todayStr();for(const[d,v]of Object.entries(S.days)){if(diff(d,t)>21)continue;for(const x of v.foods||[])c[x.f]=(c[x.f]||0)+1}
   return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([id])=>foodById(id)).filter(f=>f&&!(f.cat==='Молочное'&&dairyBanned(S.diaryDate))).slice(0,6)}
 /* Поиск по названию и по номеру Е, в т. ч. внутри диапазонов вида E220–E228 */
@@ -174,16 +174,16 @@ function matchFoods(q,d){q=q.trim().toLowerCase();if(!q)return[];const ban=dairy
   if(ban&&isDairyQuery(q))res=[{ban:true}].concat(res);
   return res.slice(0,8)}
 function viewDiary(){
-  const d=S.diaryDate;const t=todayStr();const{fs,pts,lib}=sums(d);
+  const d=S.diaryDate;const t=todayStr();const{fs,pts,lib,good}=sums(d);
   let h=`<div class="head"><h1>Дневник</h1><div class="datesw"><button data-act="dprev" aria-label="Предыдущий день">‹</button><b>${d===t?'Сегодня, ':''}${fmtDay(d)}</b><button data-act="dnext" aria-label="Следующий день" ${d>=t?'disabled':''}>›</button></div></div>`;
-  h+=`<div class="stats"><div class="stat"><span class="l">Гистамин</span><span class="v">${pts}</span><span class="c">${plural(pts,'балл','балла','баллов')} за день</span></div><div class="stat lib"><span class="l">${LIB} Либераторы</span><span class="v">${lib}</span><span class="c">${plural(lib,'продукт','продукта','продуктов')}</span></div></div>`;
+  h+=`<div class="stats"><div class="stat"><span class="l">Гистамин</span><span class="v">${pts}</span><span class="c">${plural(pts,'балл','балла','баллов')}</span></div><div class="stat lib"><span class="l">${LIB} Либераторы</span><span class="v">${lib}</span><span class="c">${plural(lib,'продукт','продукта','продуктов')}</span></div><div class="stat good"><span class="l">${score(0)} Полезные</span><span class="v">${good}</span><span class="c">${plural(good,'продукт','продукта','продуктов')}</span></div></div>`;
   h+=`<div class="search"><label class="input">${SEARCH_IC}<input id="dq" type="search" placeholder="Добавить продукт" autocomplete="off" value="${esc(S.q)}"></label><div id="ddrop">${diaryDrop()}</div></div>`;
   const fr=frequent();
   if(fr.length)h+=`<div class="sec"><span>Часто добавляешь</span><span></span></div><div class="chips">`+fr.map(f=>`<button class="chip add" data-act="add" data-id="${esc(f.id)}">+ ${esc(f.name)}</button>`).join('')+`</div>`;
   h+=`<div class="sec"><span>Съедено ${d===t?'сегодня':'за день'}</span><span>${fs.length||''}</span></div>`;
   if(!fs.length)h+=`<div class="empty-line">Пока ничего. Найди продукт в поиске выше, и он появится здесь со своим баллом.</div>`;
   else h+=`<div class="chips">`+day(d).foods.map((x,i)=>{const f=foodById(x.f);if(!f)return'';return`<span class="chip c${f.score}">${score(f.score)}${esc(f.name)}${f.lib?LIB:''}<button class="x" data-act="rm" data-i="${i}" aria-label="Убрать ${esc(f.name)}">×</button></span>`}).join('')+`</div>`;
-  h+=`<div class="foot">Продукты с оценкой 0 не отмечаются — они не добавляют гистамина. Л — гистаминолибератор, считается отдельно.</div>`;
+  h+=`<div class="foot">Л — гистаминолибератор, считается отдельно. Зелёные — полезные продукты с оценкой 0, гистамина не добавляют.</div>`;
   return h;
 }
 function diaryDrop(){

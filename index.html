@@ -79,9 +79,13 @@ h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
 .datesw b{font-size:15px;font-weight:600}
 .datesw button{width:36px;height:36px;font-size:22px;color:var(--muted);border-radius:18px}
 .datesw button:disabled{color:var(--line);cursor:default}
-.stats{display:flex;gap:12px;padding:4px 20px 8px}
+.stats{display:flex;gap:8px;padding:4px 20px 8px}
 .stat{flex:1;padding:14px 16px;border-radius:14px;background:var(--surface);display:flex;flex-direction:column;gap:2px}
 .stat.lib{background:var(--brand-soft)}
+.stat.good{background:var(--s0-bg)}
+.stats .stat{min-width:0;padding:12px}
+.stats .stat .l{font-size:12px;flex-wrap:wrap;row-gap:4px}
+.stats .stat .v{font-size:30px}
 .stat .l{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:500;color:var(--muted)}
 .stat .v{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
 .stat .c{font-size:13px;color:var(--muted)}
@@ -153,7 +157,7 @@ h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
 <div class="tabs" hidden><nav id="tabs"></nav></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="config.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
