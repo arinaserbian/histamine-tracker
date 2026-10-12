@@ -204,7 +204,7 @@ function productList(){
   const ban=dairyBanned(todayStr());const q=S.pq.trim().toLowerCase();
   const fs=allFoods().filter(f=>(!q||f.name.toLowerCase().includes(q))&&(S.pf==='all'||(S.pf==='lib'?f.lib:String(f.score)===S.pf)));
   let h='';
-  if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div class="hint">По списку SIGHI</div></div>`;
+  if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(0)} можно и полезно: флавоноиды</div><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div class="hint">По списку SIGHI</div></div>`;
   const cats=[...CATS];if((S.settings.custom||[]).length)cats.push('Мои продукты');
   for(const c of cats){
     if(c==='Молочное'&&ban){
@@ -217,6 +217,7 @@ function productList(){
     const auto=!!q||S.pf!=='all';const open=auto||!!S.openCats[c];
     h+=`<button class="sec cat${open?' open':''}" data-act="cat" data-c="${esc(c)}" aria-expanded="${open}" ${auto?'disabled':''}><span class="cl">${auto?'':CHEV}${esc(c)}</span><span>${items.length}</span></button>`;
     if(!open)continue;
+    if(c==='Можно и полезно')h+=`<div class="cat-note">Флавоноиды (кверцетин, лютеолин и др.) стабилизируют тучные клетки в лабораторных исследованиях. Доказательств, что их количество в еде заметно снижает реакции, пока мало.</div>`;
     for(const f of items){const sub=foodSub(f);h+=`<div class="row-item"><span class="txt"><span class="t">${esc(f.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:''}</span>${f.lib?LIB:''}${score(f.score)}<button class="plus" data-act="padd" data-id="${esc(f.id)}" aria-label="Добавить в дневник: ${esc(f.name)}">${PLUS}</button></div>`}
   }
   if(!h.includes('row-item'))h+=`<div class="empty-line">Ничего не нашлось. Если продукта нет в списке, скорее всего, он хорошо переносится.</div>`;
