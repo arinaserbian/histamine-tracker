@@ -196,7 +196,7 @@ function diaryDrop(){
 }
 function viewProducts(){
   let h=`<div class="head"><h1>Продукты</h1></div><div class="search top0"><label class="input">${SEARCH_IC}<input id="pq" type="search" placeholder="Поиск продукта" autocomplete="off" value="${esc(S.pq)}"></label></div>`;
-  const fl=[['all','Все'],['1',''],['2',''],['3',''],['lib','Либераторы']];
+  const fl=[['all','Все'],['0',''],['1',''],['2',''],['3',''],['lib','Либераторы']];
   h+=`<div class="filters" role="group" aria-label="Фильтр">`+fl.map(([k,l])=>`<button class="fchip${k===S.pf?' sel':''}${l?'':' has-score'}" data-act="pf" data-k="${k}" aria-pressed="${k===S.pf}">${l||score(k)}</button>`).join('')+`</div>`;
   return h+`<div id="plist">${productList()}</div>`;
 }
