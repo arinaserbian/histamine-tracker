@@ -165,9 +165,12 @@ function asNeeded(d,ro){
 function sums(d){const fs=day(d).foods.map(x=>foodById(x.f)).filter(Boolean);return{fs,pts:fs.reduce((a,f)=>a+f.score,0),lib:fs.filter(f=>f.lib).length}}
 function frequent(){const c={};const t=todayStr();for(const[d,v]of Object.entries(S.days)){if(diff(d,t)>21)continue;for(const x of v.foods||[])c[x.f]=(c[x.f]||0)+1}
   return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([id])=>foodById(id)).filter(f=>f&&!(f.cat==='Молочное'&&dairyBanned(S.diaryDate))).slice(0,6)}
+/* Поиск по названию и по номеру Е, в т. ч. внутри диапазонов вида E220–E228 */
+function eRanges(s){const r=[];const re=/E(\d{3,4})[a-z]?(?:\s*[–-]\s*E?(\d{3,4}))?/gi;let m;while((m=re.exec(s))){const a=+m[1];r.push([a,m[2]?+m[2]:a])}return r}
+function nameMatch(f,q){q=q.toLowerCase();if(f.name.toLowerCase().includes(q))return true;const m=q.replace(/\s/g,'').match(/^[eе]-?(\d{3,4})$/);if(m){const n=+m[1];return eRanges(f.name).some(([a,b])=>n>=a&&n<=b)}return false}
 const isDairyQuery=q=>DAIRY_WORDS.some(w=>q.includes(w)||w.startsWith(q));
 function matchFoods(q,d){q=q.trim().toLowerCase();if(!q)return[];const ban=dairyBanned(d);
-  let res=allFoods().filter(f=>f.name.toLowerCase().includes(q)&&!(ban&&f.cat==='Молочное'));
+  let res=allFoods().filter(f=>nameMatch(f,q)&&!(ban&&f.cat==='Молочное'));
   if(ban&&isDairyQuery(q))res=[{ban:true}].concat(res);
   return res.slice(0,8)}
 function viewDiary(){
@@ -202,7 +205,7 @@ function viewProducts(){
 }
 function productList(){
   const ban=dairyBanned(todayStr());const q=S.pq.trim().toLowerCase();
-  const fs=allFoods().filter(f=>(!q||f.name.toLowerCase().includes(q))&&(S.pf==='all'||(S.pf==='lib'?f.lib:String(f.score)===S.pf)));
+  const fs=allFoods().filter(f=>(!q||nameMatch(f,q))&&(S.pf==='all'||(S.pf==='lib'?f.lib:String(f.score)===S.pf)));
   let h='';
   if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(0)} можно и полезно: флавоноиды</div><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div class="hint">По списку SIGHI</div></div>`;
   const cats=[...CATS];if((S.settings.custom||[]).length)cats.push('Мои продукты');
