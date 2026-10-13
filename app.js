@@ -101,10 +101,11 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 let toastT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800)}
 const score=n=>`<span class="score s${n}">${n}</span>`;
 const LIB='<span class="badge lib">Л</span>';
+const BLK='<span class="badge lib">Б</span>';
 const PLUS='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const SEARCH_IC='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/></svg>';
 const CHEV='<svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3l3 3-3 3"/></svg>';
-const foodSub=f=>[f.blk?'блокирует DAO':'',f.note||''].filter(Boolean).join(' · ');
+const foodSub=f=>f.note||'';
 const banBadge=()=>`<span class="badge ban">до ${fmtDate(P().dairyUntil)}</span>`;
 
 function viewLogin(){
@@ -182,7 +183,7 @@ function viewDiary(){
   if(fr.length)h+=`<div class="sec"><span>Часто добавляешь</span><span></span></div><div class="chips">`+fr.map(f=>`<button class="chip add" data-act="add" data-id="${esc(f.id)}">+ ${esc(f.name)}</button>`).join('')+`</div>`;
   h+=`<div class="sec"><span>Съедено ${d===t?'сегодня':'за день'}</span><span>${fs.length||''}</span></div>`;
   if(!fs.length)h+=`<div class="empty-line">Пока ничего. Найди продукт в поиске выше, и он появится здесь со своим баллом.</div>`;
-  else h+=`<div class="chips">`+day(d).foods.map((x,i)=>{const f=foodById(x.f);if(!f)return'';return`<span class="chip c${f.score}">${score(f.score)}${esc(f.name)}${f.lib?LIB:''}<button class="x" data-act="rm" data-i="${i}" aria-label="Убрать ${esc(f.name)}">×</button></span>`}).join('')+`</div>`;
+  else h+=`<div class="chips">`+day(d).foods.map((x,i)=>{const f=foodById(x.f);if(!f)return'';return`<span class="chip c${f.score}">${score(f.score)}${esc(f.name)}${f.lib?LIB:''}${f.blk?BLK:''}<button class="x" data-act="rm" data-i="${i}" aria-label="Убрать ${esc(f.name)}">×</button></span>`}).join('')+`</div>`;
   h+=`<div class="foot">Л — гистаминолибератор, считается отдельно. Зелёные — полезные продукты с оценкой 0, гистамина не добавляют.</div>`;
   return h;
 }
@@ -192,7 +193,7 @@ function diaryDrop(){
   for(const f of res){
     if(f.ban){h+=`<div class="row-item"><span class="txt"><span class="t">Вся молочка</span><span class="s">молоко, сыр, творог, йогурт</span></span>${banBadge()}</div>`;continue}
     const sub=foodSub(f);
-    h+=`<button class="row-item" data-act="add" data-id="${esc(f.id)}"><span class="txt"><span class="t">${esc(f.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:''}</span>${f.lib?LIB:''}${score(f.score)}</button>`;
+    h+=`<button class="row-item" data-act="add" data-id="${esc(f.id)}"><span class="txt"><span class="t">${esc(f.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:''}</span>${f.lib?LIB:''}${f.blk?BLK:''}${score(f.score)}</button>`;
   }
   if(!res.length)h+=`<div class="empty"><span>«${esc(q)}» нет в списке — скорее всего, продукт хорошо переносится и баллы ему не нужны.</span><span class="opts">Добавить со своим баллом: <button class="score s1" data-act="custom" data-s="1">1</button><button class="score s2" data-act="custom" data-s="2">2</button><button class="score s3" data-act="custom" data-s="3">3</button></span></div>`;
   return h+'</div>';
@@ -207,7 +208,7 @@ function productList(){
   const ban=dairyBanned(todayStr());const q=S.pq.trim().toLowerCase();
   const fs=allFoods().filter(f=>(!q||nameMatch(f,q))&&(S.pf==='all'||(S.pf==='lib'?f.lib:String(f.score)===S.pf)));
   let h='';
-  if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(0)} можно и полезно: флавоноиды</div><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div class="hint">По списку SIGHI</div></div>`;
+  if(!q&&S.pf==='all')h+=`<div class="legend"><div>${score(0)} можно и полезно: флавоноиды</div><div>${score(1)} умеренно, понемногу</div><div>${score(2)} плохо переносится</div><div>${score(3)} очень плохо</div><div>${LIB} высвобождает гистамин в организме</div><div>${BLK} блокирует DAO — фермент, расщепляющий гистамин</div><div class="hint">По списку SIGHI</div></div>`;
   const cats=[...CATS];if((S.settings.custom||[]).length)cats.push('Мои продукты');
   for(const c of cats){
     if(c==='Молочное'&&ban){
@@ -221,7 +222,7 @@ function productList(){
     h+=`<button class="sec cat${open?' open':''}" data-act="cat" data-c="${esc(c)}" aria-expanded="${open}" ${auto?'disabled':''}><span class="cl">${auto?'':CHEV}${esc(c)}</span><span>${items.length}</span></button>`;
     if(!open)continue;
     if(c==='Можно и полезно')h+=`<div class="cat-note">Флавоноиды (кверцетин, лютеолин и др.) стабилизируют тучные клетки в лабораторных исследованиях. Доказательств, что их количество в еде заметно снижает реакции, пока мало.</div>`;
-    for(const f of items){const sub=foodSub(f);h+=`<div class="row-item"><span class="txt"><span class="t">${esc(f.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:''}</span>${f.lib?LIB:''}${score(f.score)}<button class="plus" data-act="padd" data-id="${esc(f.id)}" aria-label="Добавить в дневник: ${esc(f.name)}">${PLUS}</button></div>`}
+    for(const f of items){const sub=foodSub(f);h+=`<div class="row-item"><span class="txt"><span class="t">${esc(f.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:''}</span>${f.lib?LIB:''}${f.blk?BLK:''}${score(f.score)}<button class="plus" data-act="padd" data-id="${esc(f.id)}" aria-label="Добавить в дневник: ${esc(f.name)}">${PLUS}</button></div>`}
   }
   if(!h.includes('row-item'))h+=`<div class="empty-line">Ничего не нашлось. Если продукта нет в списке, скорее всего, он хорошо переносится.</div>`;
   return h;
