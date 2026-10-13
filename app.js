@@ -46,7 +46,7 @@ function buildFoods(){const raw=(S.plan&&S.plan.foods)||[];if(raw===FOODS_SRC)re
 const DAIRY_WORDS=['молок','сыр','творог','йогурт','кефир','сметан','сливк','ряженк','молочн'];
 
 /* ---------- состояние ---------- */
-const S={sb:null,user:null,plan:null,days:{},settings:{islaStart:null,custom:[]},route:'today',diaryDate:todayStr(),q:'',pq:'',pf:'all',login:{step:'email',email:'',busy:false,err:''},dirty:{days:{},settings:false},offline:false,openCats:{}};
+const S={sb:null,user:null,plan:null,days:{},settings:{islaStart:null,custom:[]},route:'today',medDate:null,diaryDate:todayStr(),q:'',pq:'',pf:'all',login:{step:'email',email:'',busy:false,err:''},dirty:{days:{},settings:false},offline:false,openCats:{}};
 try{S.openCats=JSON.parse(localStorage.getItem('ht-open-cats')||'{}')||{}}catch(e){}
 const CACHE_KEY='ht-cache-v1';
 const loadCache=()=>{try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'null')}catch(e){return null}};
@@ -124,18 +124,23 @@ function viewLogin(){
 function viewNoPlan(){return `<div class="head"><h1>Нет схемы</h1></div><div class="finished">Ты вошла как ${esc(S.user.email)}, но схема лечения для этой почты не найдена. Её нужно добавить в базе Supabase (файл seed.sql).</div><div class="foot"><button class="link" data-act="logout">Выйти</button></div>`}
 
 function viewToday(){
-  const p=P();const t=todayStr();const pre=t<p.start;const d=pre?p.start:t;const done=day(d).checks;const ro=pre;
-  let h=`<div class="head"><span class="over">${pre?'Завтра, ':''}${fmtDay(d)}</span><h1>Сегодня</h1>`;
+  const p=P();const t=todayStr();const pre=t<p.start;const base=pre?p.start:t;
+  const max=base>p.end?base:p.end;let d=S.medDate||base;if(d<p.start)d=p.start;if(d>max)d=max;S.medDate=d===base?null:d;
+  const done=day(d).checks;const ro=d>t;
+  const rel=d===t?'Сегодня':d===addDays(t,-1)?'Вчера':d===addDays(t,1)?'Завтра':fmtDate(d);
+  let h=`<div class="head"><h1>${rel}</h1><div class="datesw"><button data-act="mprev" aria-label="Предыдущий день" ${d<=p.start?'disabled':''}>‹</button><b>${fmtDay(d)}</b><button data-act="mnext" aria-label="Следующий день" ${d>=max?'disabled':''}>›</button></div>`;
   if(d>p.end){h+=`</div><div class="finished">Курс закончился ${fmtDate(p.end)}. Если врач назначит новую схему, её можно будет добавить.</div>`;return h+asNeeded(d,ro)}
   const act=p.items.filter(i=>activeOn(i,d));const n=act.filter(i=>done[i.id]).length;
   h+=`<div class="progress"><div class="row"><span>День ${diff(p.start,d)+1} из ${p.courseDays}</span><span>${n} из ${act.length}</span></div><div class="bar"><i style="width:${act.length?n/act.length*100:0}%"></i></div></div></div>`;
-  if(pre)h+=`<div class="note">Курс начинается ${diff(t,p.start)===1?'завтра':fmtDate(p.start)}. Отмечать приём можно будет с утра.</div>`;
+  if(pre&&d===p.start)h+=`<div class="note">Курс начинается ${diff(t,p.start)===1?'завтра':fmtDate(p.start)}. Отмечать приём можно будет с утра.</div>`;
+  else if(ro)h+=`<div class="note">Это план на ${fmtDate(d)}. Отметить приём можно будет в этот день. <button class="link" data-act="mtoday">К сегодня</button></div>`;
+  else if(d<t)h+=`<div class="note">Прошедший день — отметки можно поправить. <button class="link" data-act="mtoday">К сегодня</button></div>`;
   if(S.offline)h+=`<div class="note">Нет связи — отметки сохранятся, когда интернет вернётся.</div>`;
   for(const[slot,label]of p.slots){
     const its=act.filter(i=>i.slot===slot);
     const sched=p.items.filter(i=>i.slot===slot&&i.every);
     if(!its.length){
-      if(sched.length&&d<=p.end){const nx=sched.map(i=>polyDates(i).find(x=>x>d)).filter(Boolean).sort()[0];if(nx)h+=`<div class="sec"><span>${label}</span><span></span></div><div class="empty-line">${esc(sched[0].name)} сегодня не нужен · следующий ${fmtShort(nx)}</div>`}
+      if(sched.length&&d<=p.end){const nx=sched.map(i=>polyDates(i).find(x=>x>d)).filter(Boolean).sort()[0];if(nx)h+=`<div class="sec"><span>${label}</span><span></span></div><div class="empty-line">${esc(sched[0].name)} ${d===t?'сегодня':'в этот день'} не нужен · следующий ${fmtShort(nx)}</div>`}
       continue;
     }
     h+=`<div class="sec"><span>${label}</span><span>${its.filter(i=>done[i.id]).length}/${its.length}</span></div>`;
@@ -259,7 +264,9 @@ function go(k){S.route=k;try{history.replaceState(null,'','#'+k)}catch(e){}rende
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const a=b.dataset.act;
-  if(a==='go')return go(b.dataset.k);
+  if(a==='go'){if(b.dataset.k==='today')S.medDate=null;return go(b.dataset.k)}
+  if(a==='mprev'||a==='mnext'){const p=P(),t=todayStr();const base=t<p.start?p.start:t;S.medDate=addDays(S.medDate||base,a==='mprev'?-1:1);render();window.scrollTo(0,0);return}
+  if(a==='mtoday'){S.medDate=null;render();window.scrollTo(0,0);return}
   if(a==='tick'){const d=b.dataset.d,id=b.dataset.id;const c=day(d).checks;if(c[id])delete c[id];else c[id]=true;saveDay(d);return render()}
   if(a==='isla-start'){const t=todayStr();S.settings.islaStart=t<P().start?P().start:t;saveSettings();toast('Курс начат');return render()}
   if(a==='isla-stop'){S.settings.islaStart=null;saveSettings();return render()}
