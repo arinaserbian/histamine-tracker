@@ -1,7 +1,7 @@
 /* Офлайн-кэш оболочки приложения. При каждом обновлении увеличивать VERSION. */
-const VERSION = 'v15';
+const VERSION = 'v16';
 const CACHE = 'ht-' + VERSION;
-const SHELL = ['./', 'index.html', 'app.js?v=15', 'config.js?v=15', 'manifest.webmanifest',
+const SHELL = ['./', 'index.html', 'app.js?v=16', 'config.js?v=16', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js'];
 

@@ -164,7 +164,7 @@ function asNeeded(d,ro){
     const k=diff(is,d)+1;let mini='';for(let i=1;i<=isla.perDay;i++){const on=done['isla-'+i];mini+=`<button class="check${on?' on':''}" data-act="tick" data-id="isla-${i}" data-d="${d}" aria-label="Пастилка ${i}" aria-pressed="${!!on}" ${ro?'disabled':''}>${TICK}</button>`}
     h+=`<div class="row-item static">${pill('isla')}<span class="txt"><span class="t">${esc(isla.name)}</span><span class="s">День ${k} из ${isla.days} · до ${isla.perDay} пастилок <button class="link" data-act="isla-stop">закончить</button></span></span><span class="mini">${mini}</span></div>`;
   } else {
-    h+=`<div class="row-item static last">${pill('isla')}<span class="txt"><span class="t">${esc(isla.name)}</span><span class="s">${esc(isla.hint)}</span></span><button class="btn" data-act="isla-start" ${ro?'disabled':''}>Начать</button></div>`;
+    h+=`<div class="row-item static last">${pill('isla')}<span class="txt"><span class="t">${esc(isla.name)}</span><span class="s">${esc(isla.hint)}</span></span><button class="btn" data-act="isla-start" ${ro||(d<todayStr())?'disabled':''}>Начать</button></div>`;
   }
   return h;
 }
